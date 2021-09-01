@@ -1,65 +1,132 @@
-<!--- 
-	The MIT License (MIT)
+/*
+* The MIT License (MIT)
+* Copyright (c) 2011 Jason Fill (@jasonfill)
+*
+* Script conversion and updates by @giancarlogomez
+*/
+component accessors=true output=false {
 
-	Copyright (c) 2011 Jason Fill (@jasonfill)
-	
-	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and 
-	associated documentation files (the "Software"), to deal in the Software without restriction, including
-	without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
-	copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the 
-	following conditions:
-	
-	The above copyright notice and this permission notice shall be included in all copies or substantial 
-	portions of the Software.
-	
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT 
-	NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
-	IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
-	WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
-	OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- --->
-<cfcomponent displayname="TwilioFactory">
-	
-	<cfset variables.instance = StructNew() />	
-	<cfset variables.instance.AccoutSid = "" />
-	<cfset variables.instance.AuthToken = "" />
-	<cfset variables.instance.ApiVersion = "2010-04-01" />
-	<cfset variables.instance.EndPoint = "api.twilio.com" />
-	<cfset variables.instance.DefaultReturnFormat = "xml" />
-	
-	<cffunction name="init" access="public" output="false">	
-		<cfargument name="accountSid" required="true" hint="The AccountSid provided by Twilio."/>
-		<cfargument name="authToken" required="true" hint="The AuthToken provided by Twilio."/>
-		<cfargument name="ApiVersion" required="false" default="#variables.instance.ApiVersion#" hint="The version of the Twilio API to be used."/>
-		<cfargument name="EndPoint" required="false" default="#variables.instance.EndPoint#" hint="The Twilio API endpoint." />
-		<cfargument name="DefaultReturnFormat" required="false" type="string" default="#variables.instance.DefaultReturnFormat#" hint="The default return format that should be used.  This can be overridden in for REST request as well." />
-		<cfset variables.instance.AccountSid = Arguments.accountSid />
-		<cfset variables.instance.AuthToken = Arguments.authToken />
-		<cfset variables.instance.ApiVersion = Arguments.ApiVersion />
-		<cfset variables.instance.EndPoint = Arguments.EndPoint />
-		<cfset variables.instance.DefaultReturnFormat = Arguments.DefaultReturnFormat />
-		<cfset variables.instance.RESTClient = createObject("component", "classes.RESTClient").init(variables.instance.AccountSid, variables.instance.AuthToken, variables.instance.ApiVersion, variables.instance.EndPoint) />
-		<cfreturn this />
-	</cffunction>
-	
-	<cffunction name="newResponse" access="public" output="false" hint="Creates a new TwiML response object.">
-		<cfreturn createObject("component", "classes.TwiML").init(variables.instance.AccountSid, variables.instance.AuthToken, variables.instance.ApiVersion, variables.instance.EndPoint) />			
-	</cffunction>
-	
-	<cffunction name="newRequest" access="public" output="false" hint="Creates a new REST request object.">
-		<cfargument name="Resource" type="string" required="true" hint="The resource that is to be consumed." />
-		<cfargument name="Method" type="string" required="true" default="GET" hint="The HTTP method to be used."/>
-		<cfargument name="Vars" type="struct" required="true" default="#StructNew()#" hint="Any variables that are to be sent with the request."/>
-		<cfreturn variables.instance.RESTClient.sendRequest(argumentCollection=arguments) />			
-	</cffunction>
-	
-	<cffunction name="getUtils" access="public" output="false" hint="Creates a new Twilio utility object.">
-		<cfreturn createObject("component", "classes.Utils").init(variables.instance.AccountSid, variables.instance.AuthToken) />			
-	</cffunction>
-	
-	<cffunction name="getCapability" access="public" output="false" hint="Creates a new Twilio capability object.">
-		<cfreturn createObject("component", "classes.Capability").init(variables.instance.AccountSid, variables.instance.AuthToken) />			
-	</cffunction>
-	
-	
-</cfcomponent>
+	/**
+	 * The AccountSid provided by Twilio.
+	 */
+	property name="AccountSid" type="string";
+	/**
+	 * The AuthToken provided by Twilio.
+	 */
+	property name="AuthToken" type="string";
+	/**
+	 * The version of the Twilio API to be used.
+	 */
+	property name="ApiVersion" type="string" default="2010-04-01";
+	/**
+	 * The Twilio API endpoint.
+	 */
+	property name="ApiEndPoint" type="string" default="api.twilio.com";
+	/**
+	 * The default return format that should be used.
+	 * This can be overridden in for REST request as well.
+	 */
+	property name="ApiResponseFormat" type="string" default="json";
+	property name="RESTClient" type="RESTClient";
+
+	public TwilioLib function init(
+		required string AccountSid,
+		required string AuthToken,
+		string ApiVersion,
+		string ApiEndPoint,
+		string ApiResponseFormat
+	){
+		setAccountSid( arguments.AccountSid );
+		setAuthToken( arguments.AuthToken );
+		if ( structKeyExists( arguments, "ApiVersion") )
+			setApiVersion( arguments.ApiVersion );
+		if ( structKeyExists( arguments, "ApiEndPoint") )
+			setApiEndPoint( arguments.ApiEndPoint );
+		if ( structKeyExists( arguments, "ApiResponseFormat") )
+			setApiResponseFormat( arguments.ApiResponseFormat );
+		setRESTClient( new classes.RESTClient( argumentCollection: arguments ) );
+		return this;
+	}
+
+	/**
+	 * Creates a new TwiML utility object.
+	 */
+	public any function getUtils(){
+		return new classes.Utils( getAuthToken() );
+	}
+
+	/**
+	 *Creates a new Twilio capability object.
+	 */
+	public any function getCapability(){
+		return new classes.Capability( getAccountSid(), getAuthToken() );
+	}
+
+	/**
+	* Creates a new REST request object.
+	*
+	* @resource      The resource that is to be consumed.
+	* @method        The HTTP method to be used.
+	* @parameters    The parameters that are to be sent with the request.
+	* @resourceRoot  The default resource root, convinience argument not passsed to library and prepends to resource
+	*/
+	public any function newRequest(
+		required string resource,
+		string method = "GET",
+		struct parameters = {},
+		string resourceRoot = "Accounts/{AccountSid}/"
+	){
+		// prepend resource root
+		if ( !findNoCase( arguments.resourceRoot, arguments.resource ) )
+			arguments.resource = arguments.resourceRoot & arguments.resource;
+		structDelete( arguments, "resourceRoot" );
+		return getRESTClient().sendRequest( argumentCollection:arguments );
+	}
+
+	/**
+	 * Creates a new TwiML response object.
+	 */
+	public any function newResponse(){
+		return new classes.TwiML();
+	}
+
+	// ==========================================================================
+	// Convinience Functions
+	// ==========================================================================
+
+	public any function availablePhoneNumbers(
+		struct parameters,
+		string countryCode = "US",
+		string type = "Local"
+	){
+		return newRequest( "AvailablePhoneNumbers/" & arguments.countryCode & "/" & arguments.type, "GET", arguments.parameters ).getResponse().output();
+	}
+
+	public any function call( struct parameters ){
+		return newRequest( "Calls", "POST", arguments.parameters ).getResponse().output();
+	}
+
+	public any function incomingPhoneNumbers( struct parameters ){
+		return newRequest( "IncomingPhoneNumbers", "GET", arguments.parameters ).getResponse().output();
+	}
+
+	public any function outgoingCallerIds(){
+		return newRequest( "OutgoingCallerIds").getResponse().output();
+	}
+
+	public any function outgoingCallerIdByID( string ID ){
+		return newRequest( "OutgoingCallerIds/" & arguments.ID ).getResponse().output();
+	}
+
+	public any function recordingByID( string ID ){
+		return newRequest( "Recordings/" & arguments.ID ).getResponse().output();
+	}
+
+	public any function recordingsByCallID( string ID ){
+		return newRequest( "Calls/" & arguments.ID & "/Recordings/" ).getResponse().output();
+	}
+
+	public any function sms( struct parameters ){
+		return newRequest( "SMS/Messages", "POST", arguments.parameters).getResponse().output();
+	}
+}

@@ -1,17 +1,40 @@
-<cfcomponent displayname="ColdFusion Twilio Library" output="false">
+/**
+ * This is a simple example setting up the twilio library as a singleton
+ * in your application scope
+ */
+component {
+	this.name = "twilio_lib_examples";
 
-	<cfset this.name = "#hash(getCurrentTemplatePath())#">
-	
-	<!--- To make things more portable lets just create a twilio mapping.... --->
-	<cfset this.mappings["/twilio"] = GetDirectoryFromPath(GetCurrentTemplatePath()) & "lib">
+	boolean function onApplicationStart(){
+		// set your twilio credentials
+		// optional settings are fromNumber and enabled that I would
+		// use to avoid having to type in various places and making sure
+		// any call to a twilio resource is only ran if enabled
+		application.twilioConfig = {
+			"enabled" 	 : true,
+			"fromNumber" : "",
+			"accountSid" : "",
+			"authToken"  : ""
+		};
+		// Create a new instance of the Twilio Lib
+		if ( application.twilioConfig.enabled ){
+			application.twilio = new lib.twilioLib(
+				application.twilioConfig.accountSid,
+				application.twilioConfig.authToken
+			) ;
+		}
+		return true;
+	}
 
-	<cffunction name="onRequestStart" output="true">
-		<cfargument name="targetPage" />	
-		<!--- To make things easy to edit we just include the settings file. --->
-		<cfinclude template="TwilioSettings.cfm" />
-		<!--- Create a new instance of the Twilio Lib, this can be stored in the App scope or elsewhere as a singleton... --->
-		<cfset REQUEST.TwilioLib = createObject("component", "twilio.TwilioLib").init(REQUEST.AccountSid, REQUEST.AuthToken, REQUEST.ApiVersion, REQUEST.ApiEndpoint) />
-	</cffunction>
- 
-</cfcomponent>
+	boolean function onRequestStart( targetPage ){
+		// set a test number here to call and text to
+		request.testNumber = "";
 
+		if ( structKeyExists(url,"reload") ){
+			applicationStop();
+			location("./",false);
+		}
+
+		return true;
+	}
+}

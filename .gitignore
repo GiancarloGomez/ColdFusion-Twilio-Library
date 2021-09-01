@@ -1,3 +1,37 @@
-colddoc
-dist
+# Folder view configuration files
 .DS_Store
+[Dd]esktop.ini
+
+# Thumbnail cache files
+._*
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Files that might appear on external disks
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Application specific files
+env
+node_modules
+test
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk

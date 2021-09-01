@@ -1,0 +1,8 @@
+{
+    "name":"twilio_lib_examples",
+    "openBrowser":true,
+    "web":{
+        "directoryBrowsing":false,
+        "welcomeFiles":"index.cfm"
+    }
+}
