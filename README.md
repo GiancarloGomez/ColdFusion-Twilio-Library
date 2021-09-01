@@ -6,7 +6,7 @@ The Twilio REST API lets to you initiate outgoing calls, list previous call,
 and much more.  See https://www.twilio.com/docs for more information.
 
 ## USAGE
-To test the code locally, you can pull this repo and run [CommandBox](https://www.ortussolutions.com/products/commandbox) from the root by executing `box server start`. Open up Application.cfc and enter the settings to be able to run the examples in the index file.
+To test the code locally, you can pull this repo and run [CommandBox](https://www.ortussolutions.com/products/commandbox) from the root by executing `box server start`. Open up Application.cfc to see how to instantiate the library and enter the settings to be able to run the examples in the index file.
 
 ## EXAMPLES
 The main entry point is still the same as the original version by using the `newRequest()` function as follows.
