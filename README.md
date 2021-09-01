@@ -73,6 +73,13 @@ function recordingsByCallID( string ID ){}
 // https://www.twilio.com/docs/sms/api/message-resource#create-a-message-resource
 function sms( struct parameters ){}
 ```
-LICENSE
--------
+
+## IF A CALL FAILS
+If for some reason an API call fails with an error of __TwilioRESTParameterException__, simply add the 
+missing parameter to the array located in `lib.classes.RESTRequest.getValidParameterList()`. This library
+uses that array to make sure the proper case is sent in the REST request as well as making sure that 
+no extraneous parameters exist in the request. A parameter missing would be due to changes to Twilio's 
+API that I have not noticed and taken the time to update.
+
+## LICENSE
 The Twilio CFML Helper Library is distributed under the MIT License
