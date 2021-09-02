@@ -110,8 +110,8 @@ component accessors=true output=false {
 		return newRequest( "IncomingPhoneNumbers", "GET", arguments.parameters ).getResponse().output();
 	}
 
-	public any function outgoingCallerIds(){
-		return newRequest( "OutgoingCallerIds").getResponse().output();
+	public any function outgoingCallerIds( struct parameters ){
+		return newRequest( "OutgoingCallerIds", "GET", arguments.parameters ).getResponse().output();
 	}
 
 	public any function outgoingCallerIdByID( string ID ){

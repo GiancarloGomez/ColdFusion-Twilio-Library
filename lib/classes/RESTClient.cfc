@@ -52,19 +52,19 @@ component accessors=true output=false {
 			);
 		}
 		// Build the url
-		buildURL( arguments.resource, requestObj )
+		buildURL( arguments.resource, requestObj );
 
  		// Set the parameters and parameter type in the requestObject
  		requestObj.setParameters( arguments.parameters );
-		 requestObj.setParameterType( arguments.method == "GET" ? "url" : "formfield" );
+		requestObj.setParameterType( arguments.method == "GET" ? "url" : "formfield" );
 
 		// Send the request off to Twilio
 		cfhttp(
 			url 		= requestObj.getURL(),
 			method 		= arguments.method,
 			result 		= "response",
-			username 	= variables.getAccountSid(),
-			password 	= variables.getAuthToken()
+			username 	= getAccountSid(),
+			password 	= getAuthToken()
 		){
 			for ( var key in requestObj.getParameters() ){
 				cfhttpparam(

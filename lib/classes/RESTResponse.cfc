@@ -21,7 +21,7 @@ component accessors=true output=false {
 		required struct Response
 	){
 		setRawResponse( arguments.Response );
-		setHttpStatusCode( val(arguments.Response.StatusCode) )
+		setHttpStatusCode( val(arguments.Response.StatusCode) );
 		setHttpStatusText( trim(replace(arguments.Response.StatusCode,getHttpStatusCode(),"")) );
 
 		if ( structKeyExists(arguments.Response.ResponseHeader, "Last-Modified") )
